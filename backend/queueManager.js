@@ -223,7 +223,8 @@ const getStats = async () => {
   const { count: totalToday } = await supabase
     .from('queue_entries')
     .select('id', { count: 'exact', head: true })
-    .gte('joined_at', today.toISOString());
+    .gte('joined_at', today.toISOString())
+    .not('status', 'eq', 'reset');
 
   return {
     totalServedToday: totalServed || 0,
