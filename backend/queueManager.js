@@ -41,17 +41,17 @@ const getQueueState = async () => {
   };
 };
 
-const joinQueue = async (name, phone) => {
+const joinQueue = async (name, email) => {
   // Duplicate check
   const { data: existing } = await supabase
     .from('queue_entries')
     .select('id')
-    .eq('phone', phone)
+    .eq('email', email)
     .in('status', ['waiting', 'serving'])
     .limit(1);
 
   if (existing && existing.length > 0) {
-    throw new Error('This phone number is already in the queue.');
+    throw new Error('This email is already in the queue.');
   }
 
   // Capacity check
@@ -66,7 +66,7 @@ const joinQueue = async (name, phone) => {
 
   const { data: newUser, error } = await supabase
     .from('queue_entries')
-    .insert({ name, phone, status: 'waiting', joined_at: new Date().toISOString() })
+    .insert({ name, email, status: 'waiting', joined_at: new Date().toISOString() })
     .select()
     .single();
 
@@ -81,7 +81,8 @@ const joinQueue = async (name, phone) => {
   const avgMs = settings?.average_service_time_ms || 5 * 60 * 1000;
   const estimatedWaitTime = avgMs * ((count || 0) + 1);
 
-  notificationService.sendJoinedMessage(newUser);
+  const position = (count || 0) + 1;
+  notificationService.sendJoinedMessage(newUser, position);
   return { user: newUser, estimatedWaitTime };
 };
 
@@ -148,8 +149,9 @@ const serveNext = async () => {
 
   notificationService.sendTurnMessage(nextUser);
 
-  if (waitingUsers.length >= 3) {
-    notificationService.sendAlmostTurnMessage(waitingUsers[2]);
+  // Notify whoever is now position 1 (next up after current)
+  if (waitingUsers.length >= 2) {
+    notificationService.sendAlmostTurnMessage(waitingUsers[1]);
   }
 
   return nextUser;
@@ -231,12 +233,27 @@ const getStats = async () => {
 };
 
 const resetStaleServing = async () => {
-  const { error } = await supabase
+  // Reset any stuck 'serving' entries back to 'waiting'
+  const { error: servingErr } = await supabase
     .from('queue_entries')
     .update({ status: 'waiting', started_at: null })
     .eq('status', 'serving');
-  if (error) console.error('resetStaleServing error', error);
-  else console.log('Stale serving entries reset to waiting.');
+  if (servingErr) console.error('resetStaleServing error', servingErr);
+
+  // Clear all waiting entries from previous sessions
+  const { error: waitingErr } = await supabase
+    .from('queue_entries')
+    .update({ status: 'reset' })
+    .eq('status', 'waiting');
+  if (waitingErr) console.error('clearStaleWaiting error', waitingErr);
+
+  // Reset queue settings
+  await supabase
+    .from('queue_settings')
+    .update({ is_paused: false, average_service_time_ms: 5 * 60 * 1000 })
+    .eq('id', 1);
+
+  console.log('Queue cleared on startup.');
 };
 
 const getEntryStatus = async (id) => {

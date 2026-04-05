@@ -11,7 +11,7 @@ const JoinView = () => {
     const saved = localStorage.getItem('joinedUser');
     return saved ? JSON.parse(saved) : null;
   });
-  const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', email: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ticketStatus, setTicketStatus] = useState(null);
@@ -92,7 +92,7 @@ const JoinView = () => {
     setTicketStatus(null);
     setPositionInfo(null);
     localStorage.removeItem('joinedUser');
-    setFormData({ name: '', phone: '' });
+    setFormData({ name: '', email: '' });
   };
 
   return (
@@ -115,7 +115,7 @@ const JoinView = () => {
             <div className="join-form-header">
               <Sparkles size={20} className="join-form-icon" />
               <h2>Reserve Your Spot</h2>
-              <p>Enter your details and we'll text you when it's your turn</p>
+              <p>Enter your details and we'll email you when it's your turn</p>
             </div>
             <form onSubmit={handleJoin} className="join-form">
               <div className="join-input-group">
@@ -130,12 +130,12 @@ const JoinView = () => {
                 />
               </div>
               <div className="join-input-group">
-                <label>Phone Number</label>
+                <label>Email Address</label>
                 <input
-                  type="tel"
-                  placeholder="e.g. +1 234 567 8900"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  type="email"
+                  placeholder="e.g. priya@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
@@ -160,13 +160,13 @@ const JoinView = () => {
             </div>
             <div className="join-ticket-position">
               <span className="join-ticket-pos-label">Your Position</span>
-              <span className="join-ticket-pos-number">{positionInfo.position}</span>
+              <span className="join-ticket-pos-number" style={{ fontFamily: 'Inter, sans-serif' }}>#{positionInfo.position}</span>
             </div>
             <div className="join-ticket-wait">
               <Clock size={16} />
               <span>Estimated wait: <strong>~{positionInfo.waitMins} mins</strong></span>
             </div>
-            <p className="join-ticket-hint">📱 We'll text you when you're almost up. Stay close!</p>
+            <p className="join-ticket-hint">📧 We'll email you when you're almost up. Stay close!</p>
             <button className="join-btn-leave" onClick={handleLeave}>
               <LogOut size={14} /> Leave Queue
             </button>

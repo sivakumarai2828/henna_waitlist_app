@@ -70,10 +70,10 @@ app.get('/api/queue', async (_req, res) => {
 });
 
 app.post('/api/queue/join', async (req, res) => {
-  const { name, phone } = req.body;
-  if (!name || !phone) return res.status(400).json({ error: 'Name and phone are required' });
+  const { name, email } = req.body;
+  if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
   try {
-    const { user, estimatedWaitTime } = await queueManager.joinQueue(name, phone);
+    const { user, estimatedWaitTime } = await queueManager.joinQueue(name, email);
     await broadcastQueueUpdate();
     res.status(201).json({ user, estimatedWaitTime });
   } catch (err) {
