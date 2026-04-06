@@ -612,7 +612,7 @@ body {
 .admin-stat-icon { margin-bottom: 0.4rem; }
 .admin-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
 .admin-stat-val {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--plum);
