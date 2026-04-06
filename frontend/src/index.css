@@ -264,6 +264,28 @@ body {
   flex-shrink: 0;
 }
 
+/* Kiosk mobile responsive */
+@media (max-width: 768px) {
+  .kiosk-root {
+    flex-direction: column;
+  }
+  .kiosk-left {
+    width: 100%;
+    padding: 2rem 1.5rem;
+    min-height: auto;
+  }
+  .kiosk-brand { text-align: center; }
+  .kiosk-title { font-size: 2.2rem; }
+  .kiosk-tagline { display: none; }
+  .kiosk-right {
+    padding: 1.5rem 1rem;
+  }
+  .kiosk-qr-card {
+    padding: 1.5rem 1rem;
+  }
+  .kiosk-qr-heading { font-size: 1.5rem; }
+}
+
 /* ═══════════════════════════════════════════════════════
    JOIN VIEW  (customer's phone)
 ═══════════════════════════════════════════════════════ */

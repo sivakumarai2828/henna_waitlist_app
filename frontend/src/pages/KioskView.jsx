@@ -83,8 +83,8 @@ const KioskView = () => {
 
           <div className="kiosk-steps">
             <div className="kiosk-step"><span>1</span> Scan QR code</div>
-            <div className="kiosk-step"><span>2</span> Enter your name & phone</div>
-            <div className="kiosk-step"><span>3</span> Relax — we'll text you!</div>
+            <div className="kiosk-step"><span>2</span> Enter your name & email</div>
+            <div className="kiosk-step"><span>3</span> Relax — we'll email you!</div>
           </div>
         </div>
       </div>
