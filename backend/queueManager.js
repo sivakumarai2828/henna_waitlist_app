@@ -189,10 +189,11 @@ const togglePause = async () => {
 };
 
 const resetQueue = async () => {
+  // Reset ALL active entries so Joined Today goes back to 0
   await supabase
     .from('queue_entries')
     .update({ status: 'reset' })
-    .in('status', ['waiting', 'serving']);
+    .in('status', ['waiting', 'serving', 'completed', 'left', 'skipped']);
 
   await supabase
     .from('queue_settings')
