@@ -115,7 +115,7 @@ const JoinView = () => {
             <div className="join-form-header">
               <Sparkles size={20} className="join-form-icon" />
               <h2>Reserve Your Spot</h2>
-              <p>Enter your details and we'll email you when it's your turn</p>
+              <p>Enter your name to join. Add email to get notified when it's your turn</p>
             </div>
             <form onSubmit={handleJoin} className="join-form">
               <div className="join-input-group">
@@ -130,13 +130,12 @@ const JoinView = () => {
                 />
               </div>
               <div className="join-input-group">
-                <label>Email Address</label>
+                <label>Email Address <span style={{ color: '#aaa', fontWeight: 400, fontSize: '0.8rem' }}>(optional)</span></label>
                 <input
                   type="email"
                   placeholder="e.g. priya@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
                 />
               </div>
               {error && <p className="join-error">{error}</p>}

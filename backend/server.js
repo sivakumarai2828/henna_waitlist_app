@@ -71,7 +71,7 @@ app.get('/api/queue', async (_req, res) => {
 
 app.post('/api/queue/join', async (req, res) => {
   const { name, email } = req.body;
-  if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
+  if (!name) return res.status(400).json({ error: 'Name is required' });
   try {
     const { user, estimatedWaitTime } = await queueManager.joinQueue(name, email);
     await broadcastQueueUpdate();

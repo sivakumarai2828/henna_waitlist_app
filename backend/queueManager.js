@@ -42,16 +42,18 @@ const getQueueState = async () => {
 };
 
 const joinQueue = async (name, email) => {
-  // Duplicate check
-  const { data: existing } = await supabase
-    .from('queue_entries')
-    .select('id')
-    .eq('email', email)
-    .in('status', ['waiting', 'serving'])
-    .limit(1);
+  // Duplicate check (only if email provided)
+  if (email) {
+    const { data: existing } = await supabase
+      .from('queue_entries')
+      .select('id')
+      .eq('email', email)
+      .in('status', ['waiting', 'serving'])
+      .limit(1);
 
-  if (existing && existing.length > 0) {
-    throw new Error('This email is already in the queue.');
+    if (existing && existing.length > 0) {
+      throw new Error('This email is already in the queue.');
+    }
   }
 
   // Capacity check
@@ -82,7 +84,7 @@ const joinQueue = async (name, email) => {
   const estimatedWaitTime = avgMs * ((count || 0) + 1);
 
   const position = (count || 0) + 1;
-  notificationService.sendJoinedMessage(newUser, position);
+  if (newUser.email) notificationService.sendJoinedMessage(newUser, position);
   return { user: newUser, estimatedWaitTime };
 };
 
@@ -147,10 +149,10 @@ const serveNext = async () => {
     .update({ status: 'serving', started_at: new Date().toISOString() })
     .eq('id', nextUser.id);
 
-  notificationService.sendTurnMessage(nextUser);
+  if (nextUser.email) notificationService.sendTurnMessage(nextUser);
 
   // Notify whoever is now position 1 (next up after current)
-  if (waitingUsers.length >= 2) {
+  if (waitingUsers.length >= 2 && waitingUsers[1].email) {
     notificationService.sendAlmostTurnMessage(waitingUsers[1]);
   }
 
