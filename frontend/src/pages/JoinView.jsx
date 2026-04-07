@@ -1,9 +1,36 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { CheckCircle, LogOut, Sparkles } from 'lucide-react';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_URL = `${SOCKET_URL}/api/queue`;
+
+const playChime = (type = 'position') => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = type === 'turn'
+      ? [523, 659, 784, 1047] // C E G C — celebratory
+      : [659, 784];            // E G — gentle nudge
+
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.4);
+    });
+
+    // Vibrate on mobile
+    if (navigator.vibrate) {
+      navigator.vibrate(type === 'turn' ? [200, 100, 200] : [150]);
+    }
+  } catch { /* audio not supported */ }
+};
 
 const JoinView = () => {
   const [queueState, setQueueState] = useState(null);
@@ -16,6 +43,8 @@ const JoinView = () => {
   const [error, setError] = useState('');
   const [ticketStatus, setTicketStatus] = useState(null);
   const [positionInfo, setPositionInfo] = useState(null);
+  const prevPositionRef = useRef(null);
+  const prevStatusRef = useRef(null);
 
   const verifyTicket = useCallback(async (userId) => {
     try {
@@ -37,6 +66,8 @@ const JoinView = () => {
     if (!queueState || !joinedUser) return;
 
     if (queueState.activeUser?.id === joinedUser.id) {
+      if (prevStatusRef.current !== 'serving') playChime('turn');
+      prevStatusRef.current = 'serving';
       setTicketStatus('serving');
       setPositionInfo(null);
       return;
@@ -44,15 +75,17 @@ const JoinView = () => {
 
     const idx = queueState.queue.findIndex(q => q.id === joinedUser.id);
     if (idx >= 0) {
+      const newPosition = idx + 1;
+      if (prevPositionRef.current !== null && newPosition < prevPositionRef.current) {
+        playChime('position');
+      }
+      prevPositionRef.current = newPosition;
+      prevStatusRef.current = 'waiting';
       setTicketStatus('waiting');
-      setPositionInfo({
-        position: idx + 1,
-        waitMins: Math.ceil(queueState.queue[idx].estimatedWaitTimeMs / 60000)
-      });
+      setPositionInfo({ position: newPosition });
       return;
     }
 
-    // User not in live queue — check actual DB status
     verifyTicket(joinedUser.id).then(status => {
       setTicketStatus(status || 'completed');
       setPositionInfo(null);
