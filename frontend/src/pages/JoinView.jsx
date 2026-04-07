@@ -7,19 +7,21 @@ const API_URL = `${SOCKET_URL}/api/queue`;
 
 let audioCtx = null;
 
-const initAudio = () => {
+const initAudio = async () => {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    await audioCtx.resume();
   }
 };
 
-const playChime = (type = 'position') => {
+const playChime = async (type = 'position') => {
   try {
     if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (audioCtx.state !== 'running') {
+      await audioCtx.resume();
+    }
 
     const notes = type === 'turn'
       ? [523, 659, 784, 1047]
@@ -32,16 +34,18 @@ const playChime = (type = 'position') => {
       gain.connect(audioCtx.destination);
       osc.type = 'sine';
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.18);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.18 + 0.4);
-      osc.start(audioCtx.currentTime + i * 0.18);
-      osc.stop(audioCtx.currentTime + i * 0.18 + 0.4);
+      gain.gain.setValueAtTime(0.35, audioCtx.currentTime + i * 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.2 + 0.5);
+      osc.start(audioCtx.currentTime + i * 0.2);
+      osc.stop(audioCtx.currentTime + i * 0.2 + 0.5);
     });
 
     if (navigator.vibrate) {
       navigator.vibrate(type === 'turn' ? [200, 100, 200] : [150]);
     }
-  } catch { /* audio not supported */ }
+  } catch (e) {
+    console.warn('Audio error:', e);
+  }
 };
 
 const JoinView = () => {
