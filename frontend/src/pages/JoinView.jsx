@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
-import { Clock, CheckCircle, LogOut, Sparkles } from 'lucide-react';
+import { CheckCircle, LogOut, Sparkles } from 'lucide-react';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_URL = `${SOCKET_URL}/api/queue`;
@@ -161,10 +161,7 @@ const JoinView = () => {
               <span className="join-ticket-pos-label">Your Position</span>
               <span className="join-ticket-pos-number" style={{ fontFamily: 'Inter, sans-serif' }}>#{positionInfo.position}</span>
             </div>
-            <div className="join-ticket-wait">
-              <Clock size={16} />
-              <span>Estimated wait: <strong>~{positionInfo.waitMins} mins</strong></span>
-            </div>
+
             <p className="join-ticket-hint">📧 We'll email you when you're almost up. Stay close!</p>
             <button className="join-btn-leave" onClick={handleLeave}>
               <LogOut size={14} /> Leave Queue
