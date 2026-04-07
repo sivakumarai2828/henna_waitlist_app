@@ -5,27 +5,39 @@ import { CheckCircle, LogOut, Sparkles } from 'lucide-react';
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_URL = `${SOCKET_URL}/api/queue`;
 
+let audioCtx = null;
+
+const initAudio = () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+};
+
 const playChime = (type = 'position') => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
     const notes = type === 'turn'
-      ? [523, 659, 784, 1047] // C E G C — celebratory
-      : [659, 784];            // E G — gentle nudge
+      ? [523, 659, 784, 1047]
+      : [659, 784];
 
     notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(audioCtx.destination);
       osc.type = 'sine';
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
-      osc.start(ctx.currentTime + i * 0.18);
-      osc.stop(ctx.currentTime + i * 0.18 + 0.4);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.18 + 0.4);
+      osc.start(audioCtx.currentTime + i * 0.18);
+      osc.stop(audioCtx.currentTime + i * 0.18 + 0.4);
     });
 
-    // Vibrate on mobile
     if (navigator.vibrate) {
       navigator.vibrate(type === 'turn' ? [200, 100, 200] : [150]);
     }
@@ -94,6 +106,7 @@ const JoinView = () => {
 
   const handleJoin = async (e) => {
     e.preventDefault();
+    initAudio(); // unlock audio on mobile on first user gesture
     setLoading(true);
     setError('');
     try {
